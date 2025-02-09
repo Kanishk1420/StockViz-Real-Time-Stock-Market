@@ -51,3 +51,5 @@ Zerodha Images/
 !assets/logo.png
 !public/favicon.png
 "@ | Out-File -FilePath .gitignore
+!.github/images/
+!.github/images/trading-view-screenshot.png
