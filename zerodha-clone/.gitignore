@@ -33,3 +33,21 @@ __pycache__/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+@"
+# Images
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.pptx
+
+# Specific image folders
+screenshots/
+Screenshots/
+Zerodha Images/
+
+# Keep specific images that are part of the project (if any)
+!assets/logo.png
+!public/favicon.png
+"@ | Out-File -FilePath .gitignore
