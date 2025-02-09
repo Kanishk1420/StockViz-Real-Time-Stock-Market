@@ -2,7 +2,7 @@
 
 StockViz is a modern, responsive web application for real-time stock market data visualization and analysis. Built with React and FastAPI, it provides interactive charts and technical analysis tools for Indian stock market data.
 
-![Trading View Screenshot](.github/images/trading-view-screenshot.png)
+![Trading View Screenshot](.github/images/Screenshot%20(17).png)
 
 ## Features
 
