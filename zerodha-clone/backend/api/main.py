@@ -14,6 +14,8 @@ from datetime import datetime
 import pandas as pd
 
 logging.basicConfig(level=logging.INFO)
+logging.getLogger("yfinance").setLevel(logging.ERROR)  # Suppress non-critical yfinance warnings
+
 app = FastAPI()
 
 app.add_middleware(
@@ -58,16 +60,17 @@ class StockDataManager:
 
     def get_duration_params(self, duration: str) -> tuple:
         return {
-            '1m': ('1d', '1m'),
-            '5m': ('1d', '5m'),
-            '15m': ('1d', '15m'),
-            '30m': ('5d', '30m'),
-            '1h': ('1mo', '1h'),
-            '4h': ('3mo', '1h'),
-            '1d': ('1mo', '1d'),
-            '1w': ('6mo', '1wk'),
-            '1mo': ('2y', '1mo')
-        }.get(duration, ('1d', '5m'))
+        '1m': ('1d', '1m'),
+        '5m': ('1d', '5m'),
+        '15m': ('1d', '15m'),
+        '30m': ('5d', '30m'),
+        '1h': ('1mo', '1h'),
+        '4h': ('3mo', '1h'),
+        '1d': ('1d', '1m'),  # Use 1-day period at 1-minute interval for intraday data
+        '1w': ('6mo', '1wk'),
+        '1mo': ('2y', '1mo')
+    }.get(duration, ('1d', '5m'))
+
 
     def get_update_interval(self, duration: str) -> int:
         return {
@@ -137,6 +140,7 @@ class StockDataManager:
             hist = await asyncio.to_thread(lambda: stock.history(period=period, interval=interval))
             
             if hist.empty:
+                logging.warning(f"No data returned for {symbol} with period {period} and interval {interval}")
                 return self.empty_response(symbol, duration)
 
             # Ensure numeric columns are properly converted
@@ -230,6 +234,10 @@ async def get_market_indices():
         nifty_data = nifty.history(period="1d")
         sensex_data = sensex.history(period="1d")
         
+        # Check if data is returned
+        if nifty_data.empty or sensex_data.empty:
+            raise Exception("Market indices data not available")
+        
         cached_data = {
             "nifty": {
                 "value": float(nifty_data['Close'].iloc[-1]),
@@ -246,6 +254,7 @@ async def get_market_indices():
     except Exception as e:
         logging.error(f"Error fetching market indices: {e}")
         return {"error": str(e)}
+
 
 @app.websocket("/ws/{symbol}")
 async def websocket_endpoint(websocket: WebSocket, symbol: str, duration: str = '1d'):
